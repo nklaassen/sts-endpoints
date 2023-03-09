@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/exp/maps"
+
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
@@ -27,27 +29,21 @@ func product[T any](lists ...[]T) [][]T {
 	return result
 }
 
-func main() {
-	if len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] != "--go-list" || len(os.Args) > 2) {
-		fmt.Printf("usage: %s [--go-list]\n", os.Args[0])
-		return
-	}
-	formatGoList := len(os.Args) == 2 && os.Args[1] == "--go-list"
+func stsEndpoints() []string {
+	nullOption := func(*endpoints.Options) {}
 
-	identityEndpointOption := func(*endpoints.Options) {}
-
-	// Will generate all combinations of endpoint resolution options with one
-	// choice from each layer
+	// Generate all combinations of endpoint resolution options with one choice
+	// from each layer.
 	layers := [][]func(*endpoints.Options){
 		{
 			endpoints.StrictMatchingOption,
 		},
 		{
-			identityEndpointOption,
+			nullOption,
 			endpoints.STSRegionalEndpointOption,
 		},
 		{
-			identityEndpointOption,
+			nullOption,
 			endpoints.UseFIPSEndpointOption,
 			endpoints.UseDualStackEndpointOption,
 		},
@@ -69,14 +65,19 @@ func main() {
 		}
 	}
 
-	endpointsSlice := make([]string, 0, len(endpointsSet))
-	for e := range endpointsSet {
-		endpointsSlice = append(endpointsSlice, e)
-	}
-
+	endpointsSlice := maps.Keys(endpointsSet)
 	sort.Strings(endpointsSlice)
+	return endpointsSlice
+}
 
-	for _, e := range endpointsSlice {
+func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] != "--go-list" || len(os.Args) > 2) {
+		fmt.Printf("usage: %s [--go-list]\n", os.Args[0])
+		return
+	}
+	formatGoList := len(os.Args) == 2 && os.Args[1] == "--go-list"
+
+	for _, e := range stsEndpoints() {
 		if formatGoList {
 			fmt.Println(`"` + e + `",`)
 		} else {
