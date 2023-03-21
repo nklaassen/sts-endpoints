@@ -3,7 +3,7 @@ module github.com/nklaassen/sts-endpoints
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.44.220
+	github.com/aws/aws-sdk-go v1.44.225
 	github.com/google/go-cmp v0.5.9
 	github.com/gravitational/teleport v1.3.3-0.20230309161551-2f9c1f562ac3
 	golang.org/x/exp v0.0.0-20230307190834-24139beb5833
